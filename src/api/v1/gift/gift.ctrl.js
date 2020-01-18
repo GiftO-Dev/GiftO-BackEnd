@@ -1,7 +1,11 @@
+const uuid = require('uuid/v4');
+const moment = require('moment');
+const schedule = require('node-schedule');
 const models = require('../../../models');
 const giftValidate = require('../../../lib/validate/gift');
 const facebookRepo = require('../../../repo/facebook');
-const uuid = require('uuid/v4');
+
+const scheduleObject = {};
 
 /**
  * @author 전광용 <jeon@kakao.com>
@@ -23,9 +27,6 @@ exports.getGift = async (ctx) => {
     }
 
     const result = await models.Gift.getByAccessId(accessId);
-    const hintResult = await models.GiftHint.findByGiftIdx(result.idx);
-    result.hint = hintResult;
-
     console.log('> 조회 성공');
 
     ctx.status = 200;
@@ -94,6 +95,26 @@ exports.sendGift = async (ctx) => {
     }
 
     await facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다! http://localhost:8080/check?accessId=${accessId}`);
+
+    const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+
+    // Schedule
+    const hintScheduleATime = moment().add(10, 'seconds').toDate();
+    const hintScheduleA = schedule.scheduleJob(hintScheduleATime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[0].hint}`);
+    });
+
+    const hintScheduleBTime = moment().add(20, 'seconds').toDate();
+    const hintScheduleB = schedule.scheduleJob(hintScheduleBTime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[1].hint}`);
+    });
+
+    const hintScheduleCTime = moment().add(30, 'seconds').toDate();
+    const hintScheduleC = schedule.scheduleJob(hintScheduleCTime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[2].hint}`);
+    });
+
+    scheduleObject[createdData.idx] = [hintScheduleA, hintScheduleB, hintScheduleC];
   
     ctx.status = 200;
     ctx.body = {
@@ -144,4 +165,10 @@ exports.removeGift = async (ctx) => {
       idx: result.idx,
     },
   });
+
+  if(Array.isArray(scheduleObject[result.idx])) {
+    scheduleObject[result.idx].forEach((job) => {
+      job.cancel();
+    });
+  }
 };
