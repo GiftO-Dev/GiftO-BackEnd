@@ -4,6 +4,7 @@ const schedule = require('node-schedule');
 const models = require('../../../models');
 const giftValidate = require('../../../lib/validate/gift');
 const facebookRepo = require('../../../repo/facebook');
+const emailRepo = require('../../../repo/email');
 
 const scheduleObject = {};
 
@@ -94,27 +95,10 @@ exports.sendGift = async (ctx) => {
       });
     }
 
-    await facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다! http://localhost:8080/check?accessId=${accessId}`);
+    // emailRepo.sendEmail(body.to, )
+    emailRepo.sendEmail(body.to, '[GIFTo] 복덩이 도착!', `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
 
     const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
-
-    // Schedule
-    const hintScheduleATime = moment().add(10, 'seconds').toDate();
-    const hintScheduleA = schedule.scheduleJob(hintScheduleATime, async () => {
-      await facebookRepo.sendMessage(body.to, `힌트! ${hint[0].hint}`);
-    });
-
-    const hintScheduleBTime = moment().add(20, 'seconds').toDate();
-    const hintScheduleB = schedule.scheduleJob(hintScheduleBTime, async () => {
-      await facebookRepo.sendMessage(body.to, `힌트! ${hint[1].hint}`);
-    });
-
-    const hintScheduleCTime = moment().add(30, 'seconds').toDate();
-    const hintScheduleC = schedule.scheduleJob(hintScheduleCTime, async () => {
-      await facebookRepo.sendMessage(body.to, `힌트! ${hint[2].hint}`);
-    });
-
-    scheduleObject[createdData.idx] = [hintScheduleA, hintScheduleB, hintScheduleC];
   
     ctx.status = 200;
     ctx.body = {
