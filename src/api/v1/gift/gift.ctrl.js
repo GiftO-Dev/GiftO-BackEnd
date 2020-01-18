@@ -1,5 +1,6 @@
 const models = require('../../../models');
 const giftValidate = require('../../../lib/validate/gift');
+const facebookRepo = require('../../../repo/facebook');
 const uuid = require('uuid/v4');
 
 /**
@@ -26,7 +27,7 @@ exports.getGift = async (ctx) => {
     result.hint = hintResult;
 
     console.log('> 조회 성공');
-    
+
     ctx.status = 200;
     ctx.body = {
       status: 200,
@@ -91,6 +92,8 @@ exports.sendGift = async (ctx) => {
         hint: hint,
       });
     }
+
+    await facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다! http://localhost:8080/check?accessId=${accessId}`);
   
     ctx.status = 200;
     ctx.body = {
@@ -109,4 +112,36 @@ exports.sendGift = async (ctx) => {
       message: '서버 오류',
     };
   }
+};
+
+/**
+ * @author 전광용 <jeon@kakao.com>
+ * @description [DELETE] 선물 삭제
+ */
+exports.removeGift = async (ctx) => {
+  const { accessId } = ctx.request.query;
+
+  if (!accessId) {
+    ctx.status = 400;
+    ctx.body = {
+      status: 400,
+      message: '검증 오류',
+    };
+    
+    return;
+  }
+
+  const result = await models.Gift.getByAccessId(accessId);
+
+  await models.GiftHint.destory({
+    where: {
+      giftIdx: result.idx,
+    },
+  });
+
+  await models.Gift.destory({
+    where: {
+      idx: result.idx,
+    },
+  });
 };
