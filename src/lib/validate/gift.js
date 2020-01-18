@@ -7,7 +7,8 @@ exports.validateGift = async (body) => {
   const schema = joi.object().keys({
     from: joi.string().required(),
     to: joi.string().required(),
-    expire: joi.date().required(),
+    present: joi.string().required(),
+    expiredAt: joi.date().required(),
     hint: joi.array().required(),
   });
 

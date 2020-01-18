@@ -39,7 +39,7 @@ exports.getAccessToken = async () => {
  * @param {String} recipient
  * @param {String} message
  */
-exports.sendMessage = async (recipient, message) => {
+exports.sendMessage = async (fbid, message) => {
   // const hmac = await getHmac();
   // console.log(hmac);
 
@@ -60,18 +60,10 @@ exports.sendMessage = async (recipient, message) => {
 
   const option = {
     method: 'POST',
-    uri: 'https://graph.facebook.com/v5.0/me/messages',
-    qs: {
-      messaging_type: 'RESPONSE',
-      access_token: pageAccessToken,
-    },
+    uri: 'http://bb7f7a51.ngrok.io/api/v1/message',
     body: {
-      recipient: {
-        phone_number: recipient,
-      },
-      message: {
-        text: message,
-      }
+      name: fbid,
+      message,
     },
     json: true,
   };
@@ -81,7 +73,7 @@ exports.sendMessage = async (recipient, message) => {
     return resp;
   } catch (error) {
     console.log(`[FACEBOOK] 메시지 발송 실패: ${error}`);
-    return null;
+    return nulcl;
   }
 
   const result = await client.sendTextMessage({id: recipient, text: message});
