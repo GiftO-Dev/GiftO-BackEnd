@@ -22,8 +22,11 @@ exports.getGift = async (ctx) => {
     }
 
     const result = await models.Gift.getByAccessId(accessId);
+    const hintResult = await models.GiftHint.findByGiftIdx(result.idx);
+    result.hint = hintResult;
 
     console.log('> 조회 성공');
+    
     ctx.status = 200;
     ctx.body = {
       status: 200,
@@ -67,11 +70,27 @@ exports.sendGift = async (ctx) => {
     }
   
     const accessId = uuid();
+    const hint = body.hint;
+    delete body.hint;
+
     const createdData = await models.Gift.create({
       ...body,
       accessId,
     });
-    
+
+    if (Array.isArray(hint)) {
+      hint.forEach((hintElement) => {
+        models.GiftHint.create({
+          giftIdx: createdData.idx,
+          hint: hintElement,
+        });
+      });
+    } else if (!!hint) {
+      models.GiftHint.create({
+        giftIdx: createdData.idx,
+        hint: hint,
+      });
+    }
   
     ctx.status = 200;
     ctx.body = {

@@ -21,5 +21,11 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
   });
 
+  GiftHint.findByGiftIdx = (giftIdx) => GiftHint.findAll({
+    where: {
+      giftIdx,
+    }
+  });
+
   return GiftHint;
 };
