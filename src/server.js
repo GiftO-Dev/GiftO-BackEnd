@@ -14,7 +14,10 @@ const server = Http.createServer(app.callback());
 const appRouter = new Router();
 appRouter.use('/api', apiRouter.routes());
 
+app.use(cors());
+app.use(body({multipart: true}));
 app.use(appRouter.routes());
+
 
 server.listen(process.env.PORT, () => {
   console.log(`Listening on port, ${process.env.PORT}`);  
