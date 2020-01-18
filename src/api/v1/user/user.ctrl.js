@@ -26,10 +26,7 @@ exports.getFriendsList = async (ctx) => {
     const primiseArray = [];
 
     for (var i in fbData) {
-      console.log(fbData[i]);
       const profileImageUrl = await facebookRepo.getProfileImage(fbData[i].id);
-
-      // console.log(profileImageUrl);
       fbData[i].profileImage = profileImageUrl.data.url;
     }
   }
