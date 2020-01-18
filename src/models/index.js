@@ -14,6 +14,7 @@ const sequelize = new Sequelize(
       min: 0,
       idle: 10000,
     },
+    logging: false,
     port: config.port,
     timezone: '+09:00',
   },
@@ -40,9 +41,9 @@ Object.keys(models).forEach((modelName) => {
 
 // 스키마 동기화
 sequelize.sync().then(() => {
-  colorConsole.green('[Model - Index] Schema is synchronized');
+  console.log('[Model - Index] Schema is synchronized');
 }).catch((err) => {
-  colorConsole.red('[Model - Index] An error has occurred: ', err);
+  console.log('[Model - Index] An error has occurred: ', err);
 });
 
 models.sequelize = sequelize;
