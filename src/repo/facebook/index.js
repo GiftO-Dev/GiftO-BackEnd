@@ -1,6 +1,11 @@
+const FBMessenger = require('fb-messenger');
 const request = require('request-promise-native');
+const crypto = require('crypto');
+const { MessengerClient } = require('messaging-api-messenger');
 const facebookConfig = require('../../../config/facebook');
 const { clientId, clientSecret, pageAccessToken } = facebookConfig;
+
+const client = new FBMessenger({token: pageAccessToken});
 
 /**
  * @author 전광용 <jeon@kakao.com>
@@ -35,16 +40,34 @@ exports.getAccessToken = async () => {
  * @param {String} message
  */
 exports.sendMessage = async (recipient, message) => {
+  // const hmac = await getHmac();
+  // console.log(hmac);
+
+  // const psidOption = {
+  //   method: 'POST',
+  //   uri: 'https://graph.facebook.com/v2.11/pages_id_mapping',
+  //   body: {
+  //     access_token: pageAccessToken,
+  //     appsecret_proof: hmac,
+  //     user_ids: recipient
+  //   },
+  //   json: true
+  // };
+
+  // const respPsid = await request(psidOption);
+  // console.log(respPsid);
+
+
   const option = {
     method: 'POST',
     uri: 'https://graph.facebook.com/v5.0/me/messages',
     qs: {
+      messaging_type: 'RESPONSE',
       access_token: pageAccessToken,
     },
     body: {
-      messaging_type: '',
       recipient: {
-        id: recipient,
+        phone_number: recipient,
       },
       message: {
         text: message,
@@ -60,7 +83,28 @@ exports.sendMessage = async (recipient, message) => {
     console.log(`[FACEBOOK] 메시지 발송 실패: ${error}`);
     return null;
   }
+
+  const result = await client.sendTextMessage({id: recipient, text: message});
+  console.log(result);
 };
+
+exports.createNotifcations = async (recipient, message) => {
+  const appAccessToken = await this.getAccessToken();
+  const appToken = appAccessToken.access_token;
+
+  const option = {
+    method: 'POST',
+    uri: `https://graph.facebook.com/v5.0/${recipient}/notifications`,
+    qs: {
+      access_token: appToken,
+      href: 'http://localhost:3000',
+      template: message,
+    },
+  };
+
+  const result = await request(option);
+  console.log(result);
+}
 
 /**
  * @author 전광용 <jeon@kakao.com>
@@ -86,6 +130,13 @@ exports.getFriends = async (accessToken) => {
   }
 }
 
+const getHmac = async () => {
+  const hmac = crypto.createHmac('sha256', clientSecret);
+  const hash = hmac.update(pageAccessToken).digest('hex');
+
+  return hash;
+}
+
 exports.getProfileImage = async (profileId) => {
   const option = {
     method: 'GET',
@@ -107,3 +158,4 @@ exports.getProfileImage = async (profileId) => {
     return null;
   }
 };
+

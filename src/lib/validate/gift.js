@@ -8,6 +8,7 @@ exports.validateGift = async (body) => {
     from: joi.string().required(),
     to: joi.string().required(),
     expire: joi.date().required(),
+    hint: joi.array().required(),
   });
 
   try {
