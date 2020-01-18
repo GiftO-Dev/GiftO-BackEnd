@@ -15,10 +15,16 @@ module.exports = (sequelize, DataTypes) => {
       field: 'hint',
       type: DataTypes.STRING(500),
       allowNull: false,
-    }
+    },
   }, {
     tableName: 'gift_hint',
     timestamps: false,
+  });
+
+  GiftHint.findByGiftIdx = (giftIdx) => GiftHint.findAll({
+    where: {
+      giftIdx,
+    }
   });
 
   return GiftHint;

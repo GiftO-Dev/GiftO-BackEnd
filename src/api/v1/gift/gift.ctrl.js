@@ -1,6 +1,11 @@
+const uuid = require('uuid/v4');
+const moment = require('moment');
+const schedule = require('node-schedule');
 const models = require('../../../models');
 const giftValidate = require('../../../lib/validate/gift');
-const uuid = require('uuid/v4');
+const facebookRepo = require('../../../repo/facebook');
+
+const scheduleObject = {};
 
 /**
  * @author 전광용 <jeon@kakao.com>
@@ -22,8 +27,8 @@ exports.getGift = async (ctx) => {
     }
 
     const result = await models.Gift.getByAccessId(accessId);
-
     console.log('> 조회 성공');
+
     ctx.status = 200;
     ctx.body = {
       status: 200,
@@ -67,11 +72,49 @@ exports.sendGift = async (ctx) => {
     }
   
     const accessId = uuid();
+    const hint = body.hint;
+    delete body.hint;
+
     const createdData = await models.Gift.create({
       ...body,
       accessId,
     });
-    
+
+    if (Array.isArray(hint)) {
+      hint.forEach((hintElement) => {
+        models.GiftHint.create({
+          giftIdx: createdData.idx,
+          hint: hintElement,
+        });
+      });
+    } else if (!!hint) {
+      models.GiftHint.create({
+        giftIdx: createdData.idx,
+        hint: hint,
+      });
+    }
+
+    await facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다! http://localhost:8080/check?accessId=${accessId}`);
+
+    const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+
+    // Schedule
+    const hintScheduleATime = moment().add(10, 'seconds').toDate();
+    const hintScheduleA = schedule.scheduleJob(hintScheduleATime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[0].hint}`);
+    });
+
+    const hintScheduleBTime = moment().add(20, 'seconds').toDate();
+    const hintScheduleB = schedule.scheduleJob(hintScheduleBTime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[1].hint}`);
+    });
+
+    const hintScheduleCTime = moment().add(30, 'seconds').toDate();
+    const hintScheduleC = schedule.scheduleJob(hintScheduleCTime, async () => {
+      await facebookRepo.sendMessage(body.to, `힌트! ${hint[2].hint}`);
+    });
+
+    scheduleObject[createdData.idx] = [hintScheduleA, hintScheduleB, hintScheduleC];
   
     ctx.status = 200;
     ctx.body = {
@@ -89,5 +132,43 @@ exports.sendGift = async (ctx) => {
       status: 500,
       message: '서버 오류',
     };
+  }
+};
+
+/**
+ * @author 전광용 <jeon@kakao.com>
+ * @description [DELETE] 선물 삭제
+ */
+exports.removeGift = async (ctx) => {
+  const { accessId } = ctx.request.query;
+
+  if (!accessId) {
+    ctx.status = 400;
+    ctx.body = {
+      status: 400,
+      message: '검증 오류',
+    };
+    
+    return;
+  }
+
+  const result = await models.Gift.getByAccessId(accessId);
+
+  await models.GiftHint.destory({
+    where: {
+      giftIdx: result.idx,
+    },
+  });
+
+  await models.Gift.destory({
+    where: {
+      idx: result.idx,
+    },
+  });
+
+  if(Array.isArray(scheduleObject[result.idx])) {
+    scheduleObject[result.idx].forEach((job) => {
+      job.cancel();
+    });
   }
 };
