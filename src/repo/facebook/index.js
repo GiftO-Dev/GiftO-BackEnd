@@ -128,3 +128,26 @@ const getHmac = async () => {
 
   return hash;
 }
+
+exports.getProfileImage = async (profileId) => {
+  const option = {
+    method: 'GET',
+    uri: `https://graph.facebook.com/v5.0/${profileId}/picture`,
+    qs: {
+      redirect: false,
+      height: 100,
+      width: 100,
+    },
+
+    json: true,
+  };
+
+  try {
+    const resp = await request(option);
+    return resp;
+  } catch (error) {
+    console.log(`[FACEBOOK] 프로필 사진 조회 실패: ${error}`);
+    return null;
+  }
+};
+
