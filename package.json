@@ -5,12 +5,18 @@
   "repository": "https://github.com/GiftO-Dev/GiftO-BackEnd.git",
   "author": "Jeon.G.Y <square.jeon@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "start": "nodemon ."
+  },
   "dependencies": {
     "dotenv": "^8.2.0",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",
     "koa-cors": "^0.0.16",
     "koa-router": "^7.4.0",
+    "mysql2": "^2.1.0",
+    "nodemon": "^2.0.2",
+    "request-promise-native": "^1.0.8",
     "sequelize": "^5.21.3"
   }
 }
