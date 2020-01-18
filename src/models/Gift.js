@@ -17,9 +17,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(200),
       allowNull: false,
     },
-    expire: {
+    expiredAt: {
       field: 'expire',
       type: DataTypes.DATE,
+      allowNull: false,
+    },
+    present: {
+      field: 'present',
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     accessId: {

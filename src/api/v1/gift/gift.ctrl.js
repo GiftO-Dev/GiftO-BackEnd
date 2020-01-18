@@ -15,9 +15,9 @@ const scheduleObject = {};
 exports.getGift = async (ctx) => {
   try {
     const { accessId } = ctx.request.query;
-    console.log(`[GIFT] 선물 조회 요청 : ${idx}`);
+    console.log(`[GIFT] 선물 조회 요청 : ${accessId}`);
     
-    if (!idx) {
+    if (!accessId) {
       ctx.status = 400;
       ctx.body = {
         status: 400,
@@ -74,6 +74,7 @@ exports.sendGift = async (ctx) => {
   
     const accessId = uuid();
     const hint = body.hint;
+
     delete body.hint;
 
     const createdData = await models.Gift.create({
@@ -95,10 +96,29 @@ exports.sendGift = async (ctx) => {
       });
     }
 
-    // emailRepo.sendEmail(body.to, )
-    emailRepo.sendEmail(body.to, '[GIFTo] 복덩이 도착!', `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
+    facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
+    // emailRepo.sendEmail(body.to, '[GIFTo] 복덩이 도착!', `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
+    
+    const scheduleATime = moment().add(10, 'seconds').toDate();
+    const scheduleBTime = moment().add(20, 'seconds').toDate();
+    const scheduleCTime = moment().add(30, 'seconds').toDate();
+    
+    const scheduleA = schedule.scheduleJob(scheduleATime, async () => {
+      const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+      facebookRepo.sendMessage(body.to, `선물한 사람을 더 쉽게 찾을 수 있는 힌트를 드립니다.\n${hints[0].hint}`);
+    });
 
-    const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+    const scheduleB = schedule.scheduleJob(scheduleBTime, async () => {
+      const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+      facebookRepo.sendMessage(body.to, `선물한 사람을 더 쉽게 찾을 수 있는 힌트를 드립니다.\n${hints[1].hint}`);
+    });
+
+    const scheduleC = schedule.scheduleJob(scheduleCTime, async () => {
+      const hints = await models.GiftHint.findByGiftIdx(createdData.idx);
+      facebookRepo.sendMessage(body.to, `선물한 사람을 더 쉽게 찾을 수 있는 힌트를 드립니다.\n${hints[2].hint}`);
+    });
+
+    scheduleObject[createdData.idx] = [scheduleA, scheduleB, scheduleC];
   
     ctx.status = 200;
     ctx.body = {
