@@ -3,6 +3,7 @@ module.exports = (sequelize, DataTypes) => {
     idx: {
       field: 'idx',
       type: DataTypes.INTEGER,
+      autoIncrement: true,
       allowNull: false,
       primaryKey: true,
     },
@@ -15,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       field: 'hint',
       type: DataTypes.STRING(500),
       allowNull: false,
-    }
+    },
   }, {
     tableName: 'gift_hint',
     timestamps: false,
