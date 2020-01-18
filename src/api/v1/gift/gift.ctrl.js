@@ -96,7 +96,7 @@ exports.sendGift = async (ctx) => {
       });
     }
 
-    facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
+    facebookRepo.sendMessage(body.to, `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://gift-o.jaehoon.kim/check?accessId=${accessId}`);
     // emailRepo.sendEmail(body.to, '[GIFTo] 복덩이 도착!', `축하합니다! 누군가가 당신에게 복덩이를 선물하였습니다!\nhttp://localhost:8080/check?accessId=${accessId}`);
     
     const scheduleATime = moment().add(10, 'seconds').toDate();
